@@ -47,6 +47,12 @@
   .btn.ghost{background:var(--card2);color:var(--cream)}
   .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
   .cnt{font-size:11px;color:var(--dim);margin-top:8px;text-align:right}
+  .glow{animation:glow 1.6s steps(2) infinite}
+  @keyframes glow{50%{fill:#e08a2c}}
+  .zzz{animation:zz 2.4s steps(4) infinite}
+  @keyframes zz{0%{transform:translate(0,1px);opacity:0}50%{opacity:1}100%{transform:translate(2px,-2px);opacity:0}}
+  .greet{font-size:11px;color:var(--moss);margin-top:3px}
+  .quote{font-size:14px;line-height:1.6;color:var(--cream);margin:6px 0 2px;word-break:keep-all}
 </style>
 </head>
 <body>
@@ -75,13 +81,47 @@ const CAT=[
   "BBBBBBBBB..",
   ".BB..BB...."
 ];
-function catSVG(scale=5){
-  const h=CAT.length,w=CAT[0].length; let r='';
-  CAT.forEach((row,y)=>[...row].forEach((c,x)=>{
+// 잠든 고양이 (E=감은 눈)
+const SLEEP=[
+  "...........",
+  "...........",
+  "...........",
+  "...........",
+  "B.....B....",
+  "BB...BB....",
+  "BBBBBBBBBB.",
+  "BEEBEEBBBBB",
+  "BBBPBBBBBBB",
+  "BBBBBBBBBBB",
+  ".BBBBBBBBB."
+];
+// 시간대 소품 (Y=해, C=종이, R=표지, K=틀, A=불빛, M=달)
+const PROPS={
+  sun:{x:12,y:0,rows:["..Y..",".YYY.","YYYYY",".YYY.","..Y.."]},
+  book:{x:12,y:8,rows:[".CCCCC","CCCCCC","RRRRRR"]},
+  lantern:{x:12,y:5,rows:[".KK.","K..K","KAAK","KAAK","KAAK","KKKK"]},
+  moon:{x:12,y:0,rows:["..MM",".MM.","MM..","MM..",".MM.","..MM"]}
+};
+const PAL={B:'#0d0d12',Y:'#f5d76e',P:'#e58a9a',E:'#4a4a5a',C:'#f3e6c8',R:'#a0603a',K:'#5a4632',A:'#ffcf6b',M:'#f3e6c8'};
+function sceneNow(){
+  const h=new Date().getHours();
+  if(h>=6&&h<11) return {cat:CAT,prop:'sun',greet:'좋은 아침이야 ☀️'};
+  if(h>=11&&h<18) return {cat:CAT,prop:'book',greet:'집중 모드 ON 📚'};
+  if(h>=18&&h<23) return {cat:CAT,prop:'lantern',greet:'오늘도 수고했어 🏮'};
+  return {cat:SLEEP,prop:'moon',greet:'이제 쉬어도 돼 🌙',sleep:true};
+}
+function catSVG(scale=5, withProp=false){
+  const s=withProp?sceneNow():{cat:CAT};
+  const rows=s.cat, h=11, w=withProp?18:11; let r='';
+  rows.forEach((row,y)=>[...row].forEach((c,x)=>{
     if(c==='.')return;
-    const col=c==='Y'?'#f5d76e':c==='P'?'#e58a9a':'#0d0d12';
-    r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col}" class="${c==='Y'?'eye':''}"/>`;
+    r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}" class="${c==='Y'?'eye':''}"/>`;
   }));
+  if(withProp){const p=PROPS[s.prop];
+    p.rows.forEach((row,y)=>[...row].forEach((c,x)=>{ if(c==='.')return;
+      r+=`<rect x="${p.x+x}" y="${p.y+y}" width="1" height="1" fill="${PAL[c]}" class="${c==='A'?'glow':''}"/>`;}));
+    if(s.sleep) r+=`<text x="8" y="3" class="zzz" font-size="3" fill="#9aa3b5" font-family="monospace">z</text>`;
+  }
   return `<svg class="cat" width="${w*scale}" height="${h*scale}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">${r}</svg>`;
 }
 function blink(){
@@ -100,9 +140,10 @@ function segs(p,n=10){let o='';for(let i=0;i<n;i++){const v=p*n-i;o+=`<div class
 
 function clock(){
   const d=new Date();
-  root.innerHTML=`<div class="row">${catSVG(5)}<div>
+  root.innerHTML=`<div class="row">${catSVG(4,true)}<div>
     <div class="big">${pad(d.getHours())}<span class="colon">:</span>${pad(d.getMinutes())}</div>
-    <div class="sub">${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${DAYS[d.getDay()]}요일</div></div></div>`;
+    <div class="sub">${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${DAYS[d.getDay()]}요일</div>
+    <div class="greet">${sceneNow().greet}</div></div></div>`;
 }
 function dday(){
   const title=P.get('title')||'목표일';
@@ -166,8 +207,50 @@ function pomo(){
   document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
   draw();
 }
+// 오늘의 한마디: 날짜마다 바뀌는 직접 쓴 문구
+const QUOTES=[
+"완벽한 하루 말고, 어제보다 조금 나은 하루면 충분해.","오늘 할 일 하나만 끝내도 오늘은 성공이야.","느려도 괜찮아. 멈추지만 않으면 돼.",
+"물 한 잔 마시고 시작하자.","10분만 해보자. 10분이 30분이 될 거야.","잘하고 싶은 마음이 있다는 게 이미 시작이야.",
+"쉬는 것도 계획의 일부야.","오늘의 나는 내일의 나에게 선물을 주는 중.","작은 체크 하나가 큰 습관이 돼.",
+"남의 속도 말고 내 속도로 가자.","하기 싫은 날에도 조금만 하면, 그게 실력이 돼.","책상 정리부터 하면 마음도 정리돼.",
+"할 수 있는 만큼만. 그게 오래 가는 비결이야.","실수해도 괜찮아. 다시 하면 되니까.","오늘 하루도 무사히 여기까지 왔어.",
+"지금 이 25분에만 집중해 보자.","어제의 나와만 비교하기.","생각보다 너는 많이 해냈어.",
+"계획이 틀어져도 하루는 다시 시작할 수 있어.","꾸준함이 재능을 이겨.","잠을 줄이는 대신 집중을 늘리자.",
+"오늘은 딱 하나만 제대로.","아침의 5분이 하루의 방향을 정해.","포기하고 싶을 땐 한 걸음만 더.",
+"충분히 잘하고 있어. 정말로.","시작이 반이라면, 체크 하나는 그 절반이야.","휴대폰은 잠깐 뒤집어 두자.",
+"걷기 10분이 머리를 맑게 해줘.","오늘의 기록이 내일의 자신감이 돼.","목표는 크게, 할 일은 작게.",
+"마감보다 하루 일찍 끝내는 기분, 느껴보자.","나를 칭찬하는 것도 습관이야.","지친 날엔 루틴 하나만 지켜도 돼.",
+"할 일 목록이 길면, 제일 쉬운 것부터.","오늘 읽은 한 페이지가 쌓여 한 권이 돼.","미루고 싶을 땐 2분만 해보기.",
+"따뜻한 차 한 잔과 함께 시작해.","괜찮아, 다들 처음엔 어려워했어.","오늘 흘린 땀은 배신하지 않아.",
+"내가 정한 약속을 지키는 하루.","조용한 시간에 가장 많이 자라.","네가 생각하는 것보다 넌 더 단단해.",
+"오늘의 목표: 어제의 나를 실망시키지 않기.","정리된 노션, 정리된 하루.","작게 시작해서 오래 가자.",
+"꿈은 마감일이 있는 목표가 될 때 이루어져.","쉬는 날엔 마음 편히 쉬기.","오늘 잘한 일 하나 적어보기.",
+"집중이 안 될 땐 자리를 바꿔봐.","천천히, 하지만 확실하게.","하루를 끝까지 버틴 너, 멋져.",
+"지금 하는 공부가 미래의 선택지를 넓혀줘.","계획은 유연하게, 실행은 단단하게.","오늘도 한 칸 채우러 왔어.",
+"잘 자는 것도 실력이야.","불안할 땐 지금 할 수 있는 일 하나.","내일의 나에게 쪽지 남기기.",
+"할까 말까 할 땐, 하자.","작은 성공을 크게 축하하자.","오늘은 어제보다 1% 더.",
+"모르는 걸 아는 게 배움의 시작.","목표를 다시 읽어보는 것만으로도 힘이 나.","운동화 끈부터 묶어보자.",
+"끝까지 하는 사람이 결국 잘하는 사람이 돼.","오늘의 피곤함은 성장의 증거야.","한 번에 하나씩.",
+"멈춰도 돼. 다시 걸으면 되니까.","너의 속도도 충분히 빨라.","작은 습관이 인생의 모양을 바꿔.",
+"오늘은 나를 위해 시간을 써보자.","집중 한 세션, 휴식 한 세션.","창문 열고 숨 한 번 크게.",
+"오늘 다 못 해도, 내일 이어서 하면 돼.","노력은 티가 안 나도 쌓이고 있어.","비교 대신 기록.",
+"좋아하는 음악 한 곡으로 시작.","끝낸 일에 체크하는 그 기분, 놓치지 마.","하루 30분이 일 년이면 182시간이야.",
+"마음이 복잡할 땐 종이에 적어봐.","오늘의 나에게 다정하게.","해낼 수 있어. 늘 그래왔잖아.",
+"방해 요소는 멀리, 목표는 가까이.","천 리 길도 오늘의 한 걸음부터.","지금의 꾸준함이 나중의 여유가 돼.",
+"오늘 배운 것 하나 말해보기.","실패는 데이터일 뿐이야.","자기 전에 내일 할 일 3개만.",
+"아침 햇빛 5분 쬐기.","계속하는 힘이 가장 큰 힘이야.","오늘도 고양이처럼 여유롭게, 하지만 할 건 하고.",
+"내가 고른 하루를 살자.","작심삼일도 열 번이면 한 달이야.","충분히 쉬었으면 다시 한 걸음.",
+"오늘 하루, 너라서 해낼 수 있었어.","지금 미루는 일이 제일 중요한 일일지도.","목표에 가까워지는 중이야.",
+"하루의 끝에 웃을 수 있게.","잘 먹고, 잘 자고, 잘 해내자.","올해의 마지막까지 함께 가자."
+];
+function quote(){
+  const d=new Date(); const doy=Math.floor((d-new Date(d.getFullYear(),0,1))/86400000);
+  const q=QUOTES[(doy+d.getFullYear())%QUOTES.length];
+  root.innerHTML=`<div class="label">💬 오늘의 한마디 · ${d.getMonth()+1}.${d.getDate()}</div>
+    <div class="row" style="align-items:center">${catSVG(3,true)}<div class="quote">${q}</div></div>`;
+}
 if(W==='pomo'){ pomo(); }
-else { const R={clock,dday,progress}[W]||clock; R(); setInterval(R, W==='clock'?1000*15:1000*60); }
+else { const R={clock,dday,progress,quote}[W]||clock; R(); setInterval(R, W==='clock'?1000*15:1000*60); }
 </script>
 </body>
 </html>
