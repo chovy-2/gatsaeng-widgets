@@ -8,6 +8,7 @@
 - `widget.html?w=pomo` : 포모도로 타이머 (집중 25분 · 짧은 휴식 5분 · 긴 휴식 15분)
 - `widget.html?w=quote` : 오늘의 한마디 (날짜마다 바뀌는 응원 문구)
 - `widget.html?w=sound` : 밤 숲 소리 (빗소리·모닥불·풀벌레·시냇물·바람)
+- `widget.html?w=cal` : 이번 달 달력 + 공휴일·대체공휴일 + 다음 공휴일 D-day
 - 시계·한마디의 고양이는 시간대에 따라 바뀌어요 (아침 ☀️ / 낮 📚 / 저녁 🏮 / 밤 🌙)
 - `&theme=light` : 라이트 테마
 
@@ -24,5 +25,7 @@
 | sounds/stream.mp3 | [Stream](https://freesound.org/people/gluckose/sounds/333987/) | gluckose | CC0 |
 | sounds/wind.mp3 | [Wind](https://freesound.org/people/felix.blume/sounds/217506/) | felix.blume (편집 Porrumentzio) | CC0 |
 | sounds/rain.mp3 | [Rain](https://freesound.org/people/alex36917/sounds/524605/) | alex36917 (편집 Porrumentzio) | CC BY |
+
+공휴일 데이터: [hyunbinseo/holidays-kr](https://github.com/hyunbinseo/holidays-kr) (MIT, `LICENSE-holidays-kr.txt`)
 
 글꼴: [Galmuri](https://github.com/quiple/galmuri) (SIL Open Font License 1.1)
