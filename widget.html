@@ -202,7 +202,7 @@ function pomo(){
     running=true; endAt=Date.now()+left*1000;
     timer=setInterval(()=>{
       left=Math.max(0,Math.round((endAt-Date.now())/1000));
-      if(left===0){stop();ding();blink();if(mode==='focus')confetti();
+      if(left===0){stop();ding();blink();
         if(mode==='focus'){done++;setMode(done%4===0?'long':'short');}else setMode('focus');return;}
       draw();
     },250);
