@@ -37,6 +37,16 @@
   @keyframes tw{50%{opacity:.1}}
   .dd{font-family:Galmuri14,'Galmuri14',monospace;font-size:38px;color:var(--amber2);text-shadow:3px 3px 0 rgba(0,0,0,.35)}
   .dd.today{color:var(--pink)}
+  .tabs{display:flex;gap:6px;margin-bottom:10px}
+  .tab{flex:1;font:inherit;font-size:11px;padding:5px 0;background:var(--card2);color:var(--dim);border:0;cursor:pointer;
+       box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+  .tab.on{background:var(--amber);color:#191919}
+  .btns{display:flex;gap:8px;margin-top:10px}
+  .btn{flex:1;font:inherit;font-size:13px;padding:7px 0;border:0;cursor:pointer;background:var(--moss);color:#191919;
+       box-shadow:0 3px 0 rgba(0,0,0,.35)}
+  .btn.ghost{background:var(--card2);color:var(--cream)}
+  .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+  .cnt{font-size:11px;color:var(--dim);margin-top:8px;text-align:right}
 </style>
 </head>
 <body>
@@ -116,8 +126,48 @@ function progress(){
   root.innerHTML=`<div class="label">⏳ ${y}년은 지금</div><div class="lines">${rows.map(([k,p])=>
     `<span>${k}</span><div class="bar" style="margin:0">${segs(p)}</div><span class="pct">${Math.floor(p*100)}%</span>`).join('')}</div>`;
 }
-const R={clock,dday,progress}[W]||clock;
-R(); setInterval(R, W==='clock'?1000*15:1000*60);
+// 포모도로: 이 브라우저 안에서만 동작, 서버에 아무것도 보내지 않음
+function pomo(){
+  const MODES={focus:['집중',25],short:['짧은 휴식',5],long:['긴 휴식',15]};
+  let mode='focus', left=25*60, running=false, timer=null, done=0;
+  root.innerHTML=`<div class="tabs">${Object.entries(MODES).map(([k,[n]])=>`<button class="tab" data-m="${k}">${n}</button>`).join('')}</div>
+    <div class="row">${catSVG(5)}<div style="flex:1"><div class="big" id="t">25:00</div><div class="bar" id="pb"></div></div></div>
+    <div class="btns"><button class="btn" id="go">시작</button><button class="btn ghost" id="rs">처음으로</button></div>
+    <div class="cnt" id="cnt">오늘 완료 0세션</div>`;
+  const $=id=>document.getElementById(id);
+  const total=()=>MODES[mode][1]*60;
+  function draw(){
+    $('t').textContent=pad(Math.floor(left/60))+':'+pad(left%60);
+    $('pb').innerHTML=segs(1-left/total());
+    $('go').textContent=running?'잠깐 멈춤':'시작';
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.m===mode));
+    $('cnt').textContent=`오늘 완료 ${done}세션 🍅`;
+    document.title=(running?'⏳ ':'')+$('t').textContent+' · 갓생 타이머';
+  }
+  function ding(){try{const a=new (window.AudioContext||window.webkitAudioContext)();
+    [0,0.25,0.5].forEach(d=>{const o=a.createOscillator(),g=a.createGain();o.type='square';o.frequency.value=880;
+      g.gain.setValueAtTime(.08,a.currentTime+d);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+d+.2);
+      o.connect(g).connect(a.destination);o.start(a.currentTime+d);o.stop(a.currentTime+d+.2);});}catch(e){}}
+  function stop(){running=false;clearInterval(timer);timer=null;}
+  function setMode(m){stop();mode=m;left=total();draw();}
+  let endAt=0;
+  $('go').onclick=()=>{
+    if(running){stop();draw();return;}
+    running=true; endAt=Date.now()+left*1000;
+    timer=setInterval(()=>{
+      left=Math.max(0,Math.round((endAt-Date.now())/1000));
+      if(left===0){stop();ding();blink();
+        if(mode==='focus'){done++;setMode(done%4===0?'long':'short');}else setMode('focus');return;}
+      draw();
+    },250);
+    draw();
+  };
+  $('rs').onclick=()=>setMode(mode);
+  document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+  draw();
+}
+if(W==='pomo'){ pomo(); }
+else { const R={clock,dday,progress}[W]||clock; R(); setInterval(R, W==='clock'?1000*15:1000*60); }
 </script>
 </body>
 </html>

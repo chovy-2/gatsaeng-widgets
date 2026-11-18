@@ -5,6 +5,7 @@
 - `widget.html?w=clock` : 시계 + 날짜
 - `widget.html?w=dday&title=토익&date=2027-01-24` : D-day
 - `widget.html?w=progress` : 올해·이번 달·이번 주·오늘 진행률
+- `widget.html?w=pomo` : 포모도로 타이머 (집중 25분 · 짧은 휴식 5분 · 긴 휴식 15분)
 - `&theme=light` : 라이트 테마
 
 `index.html`에서 위젯을 고르고 주소를 복사해 노션 `/임베드`에 붙여넣으면 돼요.
