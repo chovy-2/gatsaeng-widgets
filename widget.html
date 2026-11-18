@@ -32,9 +32,6 @@
   .seg.half{background:linear-gradient(90deg,var(--amber) 50%,var(--card2) 50%)}
   .lines{display:grid;grid-template-columns:auto 1fr auto;gap:6px 8px;align-items:center;font-size:11px}
   .lines .pct{color:var(--amber2);text-align:right;min-width:34px}
-  .stars{position:absolute;inset:0;pointer-events:none}
-  .star{position:absolute;width:3px;height:3px;background:var(--amber2);animation:tw 2.4s steps(2) infinite}
-  @keyframes tw{50%{opacity:.1}}
   .dd{font-family:Galmuri14,'Galmuri14',monospace;font-size:38px;color:var(--amber2);text-shadow:3px 3px 0 rgba(0,0,0,.35)}
   .dd.today{color:var(--pink)}
   .tabs{display:flex;gap:6px;margin-bottom:10px}
@@ -73,7 +70,6 @@
 </head>
 <body>
 <div class="card" id="card">
-  <div class="stars" id="stars"></div>
   <div id="root"></div>
 </div>
 <script>
@@ -145,11 +141,6 @@ function blink(){
   setTimeout(()=>document.querySelectorAll('.eye').forEach(e=>e.setAttribute('fill','#f5d76e')),160);
 }
 setInterval(blink,4200);
-
-// 반딧불
-const st=document.getElementById('stars');
-for(let i=0;i<6;i++){const s=document.createElement('div');s.className='star';
-  s.style.left=(8+Math.random()*84)+'%';s.style.top=(6+Math.random()*30)+'%';s.style.animationDelay=(Math.random()*2.4)+'s';st.appendChild(s);}
 
 const root=document.getElementById('root');
 function segs(p,n=10){let o='';for(let i=0;i<n;i++){const v=p*n-i;o+=`<div class="seg ${v>=1?'on':v>=.5?'half':''}"></div>`;}return o;}
