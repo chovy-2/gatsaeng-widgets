@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gatsaeng Pixel Widget</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css">
+<style>
+  :root{
+    --bg:#191919; --card:#232a38; --card2:#2b3446; --line:#3c4760;
+    --amber:#f2b35b; --amber2:#ffd58a; --moss:#86b26f; --cream:#f3e6c8; --dim:#9aa3b5; --pink:#e58a9a;
+  }
+  body.light{ --bg:#ffffff; --card:#f6efe1; --card2:#efe3cb; --line:#d9c7a3; --cream:#3a3226; --dim:#7d705b; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);overflow:hidden}
+  body{font-family:Galmuri11,'Galmuri11',monospace;color:var(--cream);display:flex;align-items:center;justify-content:center;
+       -webkit-font-smoothing:none;image-rendering:pixelated}
+  .card{position:relative;width:min(100%,340px);background:var(--card);padding:16px 18px 14px;
+        box-shadow:0 -4px 0 0 var(--line),0 4px 0 0 var(--line),-4px 0 0 0 var(--line),4px 0 0 0 var(--line),
+                   inset 0 -4px 0 0 rgba(0,0,0,.18)}
+  .row{display:flex;align-items:flex-end;gap:12px}
+  .cat{flex:none}
+  .big{font-family:Galmuri14,'Galmuri14',monospace;font-size:40px;line-height:1;letter-spacing:2px;color:var(--amber2);
+       text-shadow:3px 3px 0 rgba(0,0,0,.35)}
+  .colon{animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:.15}}
+  .sub{font-size:12px;color:var(--dim);margin-top:6px}
+  .label{font-size:12px;color:var(--moss);margin-bottom:6px}
+  .bar{display:flex;gap:3px;margin-top:8px}
+  .seg{flex:1;height:10px;background:var(--card2);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+  .seg.on{background:var(--amber)}
+  .seg.half{background:linear-gradient(90deg,var(--amber) 50%,var(--card2) 50%)}
+  .lines{display:grid;grid-template-columns:auto 1fr auto;gap:6px 8px;align-items:center;font-size:11px}
+  .lines .pct{color:var(--amber2);text-align:right;min-width:34px}
+  .stars{position:absolute;inset:0;pointer-events:none}
+  .star{position:absolute;width:3px;height:3px;background:var(--amber2);animation:tw 2.4s steps(2) infinite}
+  @keyframes tw{50%{opacity:.1}}
+  .dd{font-family:Galmuri14,'Galmuri14',monospace;font-size:38px;color:var(--amber2);text-shadow:3px 3px 0 rgba(0,0,0,.35)}
+  .dd.today{color:var(--pink)}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="stars" id="stars"></div>
+  <div id="root"></div>
+</div>
+<script>
+const P = new URLSearchParams(location.search);
+const W = (P.get('w')||'clock').toLowerCase();
+if ((P.get('theme')||'').toLowerCase()==='light') document.body.classList.add('light');
+const DAYS=['일','월','화','수','목','금','토'];
+const pad=n=>String(n).padStart(2,'0');
+
+// 픽셀 검은 고양이 (B=몸, Y=눈, P=코, .=빈칸)
+const CAT=[
+  "B.....B....",
+  "BB...BB....",
+  "BBBBBBB....",
+  "BYBBBYB....",
+  "BBBPBBB....",
+  ".BBBBB...B.",
+  ".BBBBBB..B.",
+  "BBBBBBBB.B.",
+  "BBBBBBBBBB.",
+  "BBBBBBBBB..",
+  ".BB..BB...."
+];
+function catSVG(scale=5){
+  const h=CAT.length,w=CAT[0].length; let r='';
+  CAT.forEach((row,y)=>[...row].forEach((c,x)=>{
+    if(c==='.')return;
+    const col=c==='Y'?'#f5d76e':c==='P'?'#e58a9a':'#0d0d12';
+    r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col}" class="${c==='Y'?'eye':''}"/>`;
+  }));
+  return `<svg class="cat" width="${w*scale}" height="${h*scale}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">${r}</svg>`;
+}
+function blink(){
+  document.querySelectorAll('.eye').forEach(e=>e.setAttribute('fill','#0d0d12'));
+  setTimeout(()=>document.querySelectorAll('.eye').forEach(e=>e.setAttribute('fill','#f5d76e')),160);
+}
+setInterval(blink,4200);
+
+// 반딧불
+const st=document.getElementById('stars');
+for(let i=0;i<6;i++){const s=document.createElement('div');s.className='star';
+  s.style.left=(8+Math.random()*84)+'%';s.style.top=(6+Math.random()*30)+'%';s.style.animationDelay=(Math.random()*2.4)+'s';st.appendChild(s);}
+
+const root=document.getElementById('root');
+function segs(p,n=10){let o='';for(let i=0;i<n;i++){const v=p*n-i;o+=`<div class="seg ${v>=1?'on':v>=.5?'half':''}"></div>`;}return o;}
+
+function clock(){
+  const d=new Date();
+  root.innerHTML=`<div class="row">${catSVG(5)}<div>
+    <div class="big">${pad(d.getHours())}<span class="colon">:</span>${pad(d.getMinutes())}</div>
+    <div class="sub">${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${DAYS[d.getDay()]}요일</div></div></div>`;
+}
+function dday(){
+  const title=P.get('title')||'목표일';
+  const ds=P.get('date')||'2027-01-01';
+  const t=new Date(ds+'T00:00:00'); const now=new Date(); now.setHours(0,0,0,0);
+  const diff=Math.round((t-now)/86400000);
+  const txt=diff>0?`D-${diff}`:diff===0?'D-DAY':`D+${-diff}`;
+  root.innerHTML=`<div class="row">${catSVG(5)}<div>
+    <div class="label">${title.replace(/</g,'&lt;')}</div>
+    <div class="dd ${diff===0?'today':''}">${txt}</div>
+    <div class="sub">${t.getFullYear()}.${pad(t.getMonth()+1)}.${pad(t.getDate())} ${DAYS[t.getDay()]}요일</div></div></div>`;
+}
+function progress(){
+  const n=new Date(),y=n.getFullYear();
+  const yS=new Date(y,0,1),yE=new Date(y+1,0,1);
+  const mS=new Date(y,n.getMonth(),1),mE=new Date(y,n.getMonth()+1,1);
+  const wd=(n.getDay()+6)%7; const wS=new Date(y,n.getMonth(),n.getDate()-wd),wE=new Date(wS.getTime()+7*86400000);
+  const dS=new Date(y,n.getMonth(),n.getDate()),dE=new Date(dS.getTime()+86400000);
+  const f=(a,b)=>Math.min(1,Math.max(0,(n-a)/(b-a)));
+  const rows=[['올해',f(yS,yE)],['이번 달',f(mS,mE)],['이번 주',f(wS,wE)],['오늘',f(dS,dE)]];
+  root.innerHTML=`<div class="label">⏳ ${y}년은 지금</div><div class="lines">${rows.map(([k,p])=>
+    `<span>${k}</span><div class="bar" style="margin:0">${segs(p)}</div><span class="pct">${Math.floor(p*100)}%</span>`).join('')}</div>`;
+}
+const R={clock,dday,progress}[W]||clock;
+R(); setInterval(R, W==='clock'?1000*15:1000*60);
+</script>
+</body>
+</html>
